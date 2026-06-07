@@ -37,6 +37,88 @@ border: none;
 outline: none;
 font-size: 14px;
 }
+
+/* ========================= */
+/* 🧾 POPUP CARD DESIGN */
+/* ========================= */
+
+.popup-card{
+    width: 520px;
+    height: 220px;
+    display: flex;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+}
+
+.left-section{
+    width: 60%;
+    padding: 18px;
+    border-right: 1px solid #eee;
+}
+
+.title{
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color:#333;
+}
+
+.info{
+    font-size: 13px;
+    margin: 6px 0;
+    color:#444;
+}
+
+.label{
+    font-weight: bold;
+    color:#111;
+}
+
+.right-section{
+    width: 40%;
+    padding: 18px;
+    background: #f7f9fc;
+    text-align: center;
+}
+
+.avatar{
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#3498db,#2c3e50);
+    margin: 0 auto 10px auto;
+}
+
+.manager-name{
+    font-weight: bold;
+    margin-top: 8px;
+    color:#222;
+}
+
+.phone{
+    font-size: 13px;
+    color:#555;
+    margin-top: 6px;
+}
+
+.call-btn{
+    margin-top: 12px;
+    padding: 6px 12px;
+    border:none;
+    background:#2b7cff;
+    color:white;
+    border-radius: 6px;
+    cursor:pointer;
+    font-size: 12px;
+}
+
+.call-btn:hover{
+    background:#1a5fd1;
+}
+
 </style>
 
 </head>
@@ -93,20 +175,29 @@ var marker = L.marker([lat,lng]);
 marker.location = location.toLowerCase();
 
 marker.bindPopup(`
-<div style="
-    font-family: Arial;
-    font-size: 14px;
-    line-height: 1.6;
-    min-width: 230px;
-">
-<h3 style="margin:0; color:#2c3e50;">${name}</h3>
-<hr>
+<div class="popup-card">
 
-<p><b>📍 Location:</b> ${location}</p>
-<p><b>📌 Latitude:</b> ${lat}</p>
-<p><b>📌 Longitude:</b> ${lng}</p>
-<p><b>👨‍💼 Manager:</b> ${manager}</p>
-<p><b>📞 Phone:</b> ${phone}</p>
+    <!-- LEFT -->
+    <div class="left-section">
+        <div class="title">Location Details</div>
+
+        <div class="info"><span class="label">Name:</span> ${name}</div>
+        <div class="info"><span class="label">Latitude:</span> ${lat}</div>
+        <div class="info"><span class="label">Longitude:</span> ${lng}</div>
+        <div class="info"><span class="label">Location:</span> ${location}</div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-section">
+        <div class="avatar"></div>
+
+        <div class="manager-name">${manager}</div>
+        <div class="phone">${phone}</div>
+
+        <button class="call-btn" onclick="window.location.href='tel:${phone}'">
+            Call
+        </button>
+    </div>
 
 </div>
 `);
@@ -119,7 +210,7 @@ allMarkers.push(marker);
 
 });
 
-// 🔍 SEARCH FUNCTION (by LOCATION)
+// SEARCH FUNCTION (LOCATION)
 document.getElementById("searchInput").addEventListener("input", function(e){
 
 var value = e.target.value.toLowerCase();

@@ -1,138 +1,235 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<title>Map Popup UI</title>
+<meta charset="utf-8">
+
+<title>Company Location Map</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
+body{
+margin:0;
+font-family:Arial;
 }
 
-/* POPUP WRAPPER */
-.popup-card {
-  width: 420px;
-  display: flex;
-  background: #ffffff;
-  border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-  overflow: hidden;
+#map{
+height:100vh;
 }
 
-/* LEFT SECTION */
-.popup-left {
-  width: 60%;
-  padding: 16px 18px;
-  border-right: 1px solid #eee;
+/* 🔍 SEARCH BOX CENTER TOP */
+.search-box {
+position: absolute;
+top: 15px;
+left: 50%;
+transform: translateX(-50%);
+z-index: 9999;
+background: white;
+padding: 8px 12px;
+border-radius: 8px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+width: 250px;
 }
 
-.popup-left h3 {
-  margin: 0 0 10px;
-  font-size: 14px;
-  color: #1f4fff;
-  letter-spacing: 0.5px;
+.search-box input {
+width: 100%;
+border: none;
+outline: none;
+font-size: 14px;
 }
 
-.info-row {
-  margin-bottom: 10px;
+/* ========================= */
+/* 🧾 POPUP CARD DESIGN */
+/* ========================= */
+
+.popup-card{
+    width: 520px;
+    height: 220px;
+    display: flex;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    overflow: hidden;
+    font-family: Arial, sans-serif;
 }
 
-.label {
-  font-weight: bold;
-  font-size: 12px;
-  color: #444;
+.left-section{
+    width: 60%;
+    padding: 18px;
+    border-right: 1px solid #eee;
 }
 
-.value {
-  font-size: 13px;
-  color: #222;
-  margin-top: 2px;
+.title{
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color:#333;
 }
 
-/* RIGHT SECTION */
-.popup-right {
-  width: 40%;
-  padding: 16px;
-  text-align: center;
+.info{
+    font-size: 13px;
+    margin: 6px 0;
+    color:#444;
 }
 
-.avatar {
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  background: #e6ecff;
-  margin: 0 auto 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  color: #1f4fff;
+.label{
+    font-weight: bold;
+    color:#111;
 }
 
-.manager-name {
-  font-weight: bold;
-  font-size: 13px;
-  margin-bottom: 6px;
+.right-section{
+    width: 40%;
+    padding: 18px;
+    background: #f7f9fc;
+    text-align: center;
 }
 
-.phone {
-  font-size: 12px;
-  color: #555;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
+.avatar{
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#3498db,#2c3e50);
+    margin: 0 auto 10px auto;
 }
 
-/* ICON STYLE (simple) */
-.icon {
-  color: #1f4fff;
+.manager-name{
+    font-weight: bold;
+    margin-top: 8px;
+    color:#222;
 }
+
+.phone{
+    font-size: 13px;
+    color:#555;
+    margin-top: 6px;
+}
+
+.call-btn{
+    margin-top: 12px;
+    padding: 6px 12px;
+    border:none;
+    background:#2b7cff;
+    color:white;
+    border-radius: 6px;
+    cursor:pointer;
+    font-size: 12px;
+}
+
+.call-btn:hover{
+    background:#1a5fd1;
+}
+
 </style>
+
 </head>
 
 <body>
 
+<!-- 🔍 SEARCH BOX -->
+<div class="search-box">
+<input type="text" id="searchInput" placeholder="Search by location...">
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+var map = L.map('map').setView([23.8103,90.4125],7);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+attribution:'© OpenStreetMap'
+}).addTo(map);
+
+// Layer group
+var markersLayer = new L.LayerGroup();
+map.addLayer(markersLayer);
+
+var allMarkers = [];
+
+fetch('location.csv')
+.then(response => response.text())
+.then(data => {
+
+const rows = data.split('\n').slice(1);
+
+rows.forEach(row => {
+
+const cols = row.split(',');
+
+if(cols.length >= 3){
+
+const name = cols[0];
+const lat = parseFloat(cols[1]);
+const lng = parseFloat(cols[2]);
+
+const location = cols[3] || "N/A";
+const manager = cols[4] || "N/A";
+const phone = cols[5] || "N/A";
+
+if(!isNaN(lat) && !isNaN(lng)){
+
+var marker = L.marker([lat,lng]);
+
+marker.location = location.toLowerCase();
+
+marker.bindPopup(`
 <div class="popup-card">
 
-  <!-- LEFT SIDE -->
-  <div class="popup-left">
-    <h3>LOCATION DETAILS</h3>
+    <!-- LEFT -->
+    <div class="left-section">
+        <div class="title">Location Details</div>
 
-    <div class="info-row">
-      <div class="label">Name</div>
-      <div class="value">Company A</div>
+        <div class="info"><span class="label">Name:</span> ${name}</div>
+        <div class="info"><span class="label">Latitude:</span> ${lat}</div>
+        <div class="info"><span class="label">Longitude:</span> ${lng}</div>
+        <div class="info"><span class="label">Location:</span> ${location}</div>
     </div>
 
-    <div class="info-row">
-      <div class="label">Latitude</div>
-      <div class="value">23.8103</div>
+    <!-- RIGHT -->
+    <div class="right-section">
+        <div class="avatar"></div>
+
+        <div class="manager-name">${manager}</div>
+        <div class="phone">${phone}</div>
+
+        <button class="call-btn" onclick="window.location.href='tel:${phone}'">
+            Call
+        </button>
     </div>
-
-    <div class="info-row">
-      <div class="label">Longitude</div>
-      <div class="value">90.4125</div>
-    </div>
-
-    <div class="info-row">
-      <div class="label">Location</div>
-      <div class="value">Dhaka, Bangladesh</div>
-    </div>
-  </div>
-
-  <!-- RIGHT SIDE -->
-  <div class="popup-right">
-    <div class="avatar">👤</div>
-
-    <div class="manager-name">Manager Name</div>
-
-    <div class="phone">
-      <span class="icon">📞</span>
-      +880 1234 567890
-    </div>
-  </div>
 
 </div>
+`);
+
+marker.addTo(markersLayer);
+allMarkers.push(marker);
+
+}
+}
+
+});
+
+// SEARCH FUNCTION (LOCATION)
+document.getElementById("searchInput").addEventListener("input", function(e){
+
+var value = e.target.value.toLowerCase();
+
+markersLayer.clearLayers();
+
+allMarkers.forEach(marker => {
+
+if(marker.location.includes(value)){
+marker.addTo(markersLayer);
+}
+
+});
+
+});
+
+});
+
+</script>
 
 </body>
 </html>

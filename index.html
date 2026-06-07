@@ -1,87 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Excel Map Viewer</title>
-
-  <meta charset="utf-8" />
+  <title>CSV Map Markers</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
     #map { height: 100vh; }
-    #searchBox {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 999;
-      width: 300px;
-      padding: 10px;
-    }
   </style>
 </head>
 
 <body>
 
-<input id="searchBox" placeholder="Search location / name..." />
-
 <div id="map"></div>
 
 <script>
-var map = L.map('map').setView([23.8103, 90.4125], 7);
+let map = L.map('map').setView([23.8103, 90.4125], 7);
 
-// OpenStreetMap
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-let markers = [];
-
-function addMarker(data) {
-  let marker = L.marker([data.latitude, data.longitude]).addTo(map);
-
-  marker.bindPopup(`
-    <b>${data.name}</b><br>
-    Location: ${data.location}<br>
-    Manager: ${data.manager}<br>
-    Phone: ${data.phone}
-  `);
-
-  markers.push({ marker, data });
-}
-
-// Load CSV
+// LOAD CSV FILE
 Papa.parse("test location.csv", {
   download: true,
   header: true,
+
   complete: function(results) {
+
     results.data.forEach(row => {
+
       if(row.latitude && row.longitude){
-        addMarker(row);
+
+        L.marker([
+          parseFloat(row.latitude),
+          parseFloat(row.longitude)
+        ]).addTo(map);
+
       }
+
     });
+
+  },
+
+  error: function(err){
+    console.log("Error loading CSV:", err);
   }
-});
-
-// SEARCH FUNCTION
-document.getElementById("searchBox").addEventListener("input", function(e){
-  let value = e.target.value.toLowerCase();
-
-  markers.forEach(item => {
-    let match =
-      item.data.name.toLowerCase().includes(value) ||
-      item.data.location.toLowerCase().includes(value) ||
-      item.data.manager.toLowerCase().includes(value);
-
-    if(match){
-      item.marker.addTo(map);
-    } else {
-      map.removeLayer(item.marker);
-    }
-  });
 });
 </script>
 

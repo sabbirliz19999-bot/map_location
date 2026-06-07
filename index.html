@@ -1,60 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Working Map Fix</title>
+<meta charset="utf-8">
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+<title>Company Location Map</title>
 
-  <style>
-    #map { height: 100vh; }
-  </style>
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+}
+
+#map{
+height:100vh;
+}
+
+</style>
+
 </head>
 
 <body>
 
 <div id="map"></div>
 
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script>
 
-let map = L.map('map').setView([23.8103, 90.4125], 7);
+var map = L.map('map').setView([23.8103,90.4125],7);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap'
-}).addTo(map);
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
+attribution:'© OpenStreetMap'
+}
+).addTo(map);
 
-// 🔥 IMPORTANT: USE RAW GITHUB LINK HERE
-const csvUrl = "https://raw.githubusercontent.com/sabbirliz19999-bot/map_location/refs/heads/main/location.csv";
+fetch('location.csv')
+.then(response => response.text())
+.then(data => {
 
-Papa.parse(csvUrl, {
-  download: true,
-  header: true,
+const rows = data.split('\n').slice(1);
 
-  complete: function(results) {
+rows.forEach(row => {
 
-    console.log("DATA LOADED:", results.data);
+const cols = row.split(',');
 
-    results.data.forEach(row => {
+if(cols.length >= 4){
 
-      if(row.latitude && row.longitude){
+const name = cols[0];
+const lat = parseFloat(cols[1]);
+const lng = parseFloat(cols[2]);
+const location = cols[3];
 
-        L.marker([
-          parseFloat(row.latitude),
-          parseFloat(row.longitude)
-        ])
-        .addTo(map)
-        .bindPopup(row.name || "No Name");
+L.marker([lat,lng])
+.addTo(map)
+.bindPopup(
+"<b>"+name+"</b><br>"+location
+);
 
-      }
+}
 
-    });
+});
 
-  },
-
-  error: function(err){
-    console.log("CSV ERROR:", err);
-  }
 });
 
 </script>

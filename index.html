@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CSV Map Markers</title>
+  <title>Map Debug Fix</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -30,7 +30,13 @@ Papa.parse("test location.csv", {
 
   complete: function(results) {
 
+    // 🔥 DEBUG LINE (IMPORTANT)
+    console.log("CSV DATA LOADED:", results.data);
+
     results.data.forEach(row => {
+
+      // 🔥 DEBUG EACH ROW
+      console.log("ROW:", row);
 
       if(row.latitude && row.longitude){
 
@@ -46,7 +52,7 @@ Papa.parse("test location.csv", {
   },
 
   error: function(err){
-    console.log("Error loading CSV:", err);
+    console.log("CSV LOAD ERROR:", err);
   }
 });
 </script>

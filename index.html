@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>GitHub Map Working</title>
+  <title>Working Map Fix</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -18,18 +18,16 @@
 
 <script>
 
-// MAP INIT
 let map = L.map('map').setView([23.8103, 90.4125], 7);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-// MARKERS ARRAY
-let markers = [];
+// 🔥 IMPORTANT: USE RAW GITHUB LINK HERE
+const csvUrl = "PASTE_YOUR_RAW_CSV_LINK_HERE";
 
-// LOAD CSV (IMPORTANT FIX HERE)
-Papa.parse("location", {
+Papa.parse(csvUrl, {
   download: true,
   header: true,
 
@@ -41,16 +39,13 @@ Papa.parse("location", {
 
       if(row.latitude && row.longitude){
 
-        let marker = L.marker([
+        L.marker([
           parseFloat(row.latitude),
           parseFloat(row.longitude)
-        ]).addTo(map);
+        ])
+        .addTo(map)
+        .bindPopup(row.name || "No Name");
 
-        marker.bindPopup(
-          `<b>${row.name}</b><br>${row.location}`
-        );
-
-        markers.push(marker);
       }
 
     });
@@ -58,7 +53,7 @@ Papa.parse("location", {
   },
 
   error: function(err){
-    console.log("ERROR LOADING CSV:", err);
+    console.log("CSV ERROR:", err);
   }
 });
 

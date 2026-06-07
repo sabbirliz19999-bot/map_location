@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Map Debug Fix</title>
+  <title>GitHub Map Working</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -17,34 +17,40 @@
 <div id="map"></div>
 
 <script>
+
+// MAP INIT
 let map = L.map('map').setView([23.8103, 90.4125], 7);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-// LOAD CSV FILE
-Papa.parse("test location.csv", {
+// MARKERS ARRAY
+let markers = [];
+
+// LOAD CSV (IMPORTANT FIX HERE)
+Papa.parse("location.csv", {
   download: true,
   header: true,
 
   complete: function(results) {
 
-    // 🔥 DEBUG LINE (IMPORTANT)
-    console.log("CSV DATA LOADED:", results.data);
+    console.log("DATA LOADED:", results.data);
 
     results.data.forEach(row => {
 
-      // 🔥 DEBUG EACH ROW
-      console.log("ROW:", row);
-
       if(row.latitude && row.longitude){
 
-        L.marker([
+        let marker = L.marker([
           parseFloat(row.latitude),
           parseFloat(row.longitude)
         ]).addTo(map);
 
+        marker.bindPopup(
+          `<b>${row.name}</b><br>${row.location}`
+        );
+
+        markers.push(marker);
       }
 
     });
@@ -52,9 +58,10 @@ Papa.parse("test location.csv", {
   },
 
   error: function(err){
-    console.log("CSV LOAD ERROR:", err);
+    console.log("ERROR LOADING CSV:", err);
   }
 });
+
 </script>
 
 </body>

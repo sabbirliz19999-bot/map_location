@@ -16,22 +16,24 @@ font-family:Arial;
 /* MAP */
 #map{
 height:100vh;
-display:none; /* hidden until login */
+display:none;
 }
 
-/* 🔍 SEARCH BOX (UPDATED STYLE) */
+/* 🔍 SEARCH BOX (MOBILE FIXED) */
 .search-box {
 position: absolute;
 top: 10px;
 left: 50%;
 transform: translateX(-50%);
 z-index: 9999;
+
+/* ✅ RESPONSIVE WIDTH FIX */
 width: 450px;
-max-width: 95%;
+max-width: 90vw;
 
 background: white;
 padding: 8px 12px;
-border-radius: 8px;
+border-radius: 10px;
 box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
@@ -40,6 +42,19 @@ width: 100%;
 border: none;
 outline: none;
 font-size: 14px;
+}
+
+/* 📱 MOBILE FIX */
+@media (max-width: 600px) {
+.search-box {
+    width: 92vw;   /* full mobile width */
+    top: 12px;
+    padding: 10px;
+}
+
+.search-box input {
+    font-size: 16px; /* better mobile typing */
+}
 }
 
 /* POPUP CARD */
@@ -54,30 +69,14 @@ overflow: hidden;
 font-family: Arial, sans-serif;
 }
 
+/* LEFT */
 .left-section{
 width: 60%;
 padding: 18px;
 border-right: 1px solid #eee;
 }
 
-.title{
-font-size: 16px;
-font-weight: bold;
-margin-bottom: 10px;
-color:#333;
-}
-
-.info{
-font-size: 13px;
-margin: 6px 0;
-color:#444;
-}
-
-.label{
-font-weight: bold;
-color:#111;
-}
-
+/* RIGHT */
 .right-section{
 width: 40%;
 padding: 18px;
@@ -85,42 +84,7 @@ background: #f7f9fc;
 text-align: center;
 }
 
-.avatar{
-width: 60px;
-height: 60px;
-border-radius: 50%;
-background: linear-gradient(135deg,#3498db,#2c3e50);
-margin: 0 auto 10px auto;
-}
-
-.manager-name{
-font-weight: bold;
-margin-top: 8px;
-color:#222;
-}
-
-.phone{
-font-size: 13px;
-color:#555;
-margin-top: 6px;
-}
-
-.call-btn{
-margin-top: 12px;
-padding: 6px 12px;
-border:none;
-background:#2b7cff;
-color:white;
-border-radius: 6px;
-cursor:pointer;
-font-size: 12px;
-}
-
-.call-btn:hover{
-background:#1a5fd1;
-}
-
-/* LOGIN SCREEN */
+/* LOGIN */
 #loginBox{
 position:fixed;
 top:0;
@@ -156,7 +120,6 @@ background:#2b7cff;
 color:white;
 border:none;
 border-radius:6px;
-cursor:pointer;
 }
 
 #errorMsg{
@@ -170,19 +133,19 @@ margin-top:8px;
 
 <body>
 
-<!-- 🔐 LOGIN -->
+<!-- LOGIN -->
 <div id="loginBox">
   <div class="login-card">
     <h3>Enter Password</h3>
-    <input type="password" id="passwordInput" placeholder="Password">
+    <input type="password" id="passwordInput">
     <button onclick="checkPassword()">Login</button>
     <p id="errorMsg"></p>
   </div>
 </div>
 
-<!-- 🔍 SEARCH -->
+<!-- SEARCH -->
 <div class="search-box">
-<input type="text" id="searchInput" placeholder="Search by location...">
+<input type="text" id="searchInput" placeholder="Search location...">
 </div>
 
 <!-- MAP -->
@@ -192,28 +155,28 @@ margin-top:8px;
 
 <script>
 
-const correctPassword = "1234"; // 🔑 CHANGE PASSWORD
+const correctPassword = "1234";
 
-function checkPassword() {
-    const input = document.getElementById("passwordInput").value;
+function checkPassword(){
+const input = document.getElementById("passwordInput").value;
 
-    if (input === correctPassword) {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("map").style.display = "block";
+if(input === correctPassword){
+document.getElementById("loginBox").style.display = "none";
+document.getElementById("map").style.display = "block";
 
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 200);
+setTimeout(()=>{
+map.invalidateSize();
+},200);
 
-    } else {
-        document.getElementById("errorMsg").innerText = "Wrong password!";
-    }
+}else{
+document.getElementById("errorMsg").innerText = "Wrong password!";
+}
 }
 
-/* MAP INIT */
-var map = L.map('map').setView([23.8103, 90.4125], 7);
+/* MAP */
+var map = L.map('map').setView([23.8103,90.4125],7);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 attribution:'© OpenStreetMap'
 }).addTo(map);
 
@@ -222,75 +185,48 @@ map.addLayer(markersLayer);
 
 var allMarkers = [];
 
-/* LOAD CSV */
+/* CSV */
 fetch('location.csv')
-.then(response => response.text())
-.then(data => {
+.then(r=>r.text())
+.then(data=>{
 
 const rows = data.split('\n').slice(1);
 
-rows.forEach(row => {
+rows.forEach(row=>{
 
 const cols = row.split(',');
 
-if(cols.length >= 3){
+if(cols.length>=3){
 
 const name = cols[0];
 const lat = parseFloat(cols[1]);
 const lng = parseFloat(cols[2]);
 
-const location = cols[3] || "N/A";
-const manager = cols[4] || "N/A";
-const phone = cols[5] || "N/A";
+const location = cols[3] || "";
 
 if(!isNaN(lat) && !isNaN(lng)){
 
-var marker = L.marker([lat, lng]);
+var marker = L.marker([lat,lng]);
 
 marker.location = location.toLowerCase();
 
-marker.bindPopup(`
-<div class="popup-card">
-
-<div class="left-section">
-<div class="title">Location Details</div>
-
-<div class="info"><span class="label">Name:</span> ${name}</div>
-<div class="info"><span class="label">Latitude:</span> ${lat}</div>
-<div class="info"><span class="label">Longitude:</span> ${lng}</div>
-<div class="info"><span class="label">Location:</span> ${location}</div>
-</div>
-
-<div class="right-section">
-<div class="avatar"></div>
-
-<div class="manager-name">${manager}</div>
-<div class="phone">${phone}</div>
-
-<button class="call-btn" onclick="window.location.href='tel:${phone}'">
-Call
-</button>
-</div>
-
-</div>
-`);
+marker.bindPopup(name);
 
 marker.addTo(markersLayer);
 allMarkers.push(marker);
 
 }
 }
-
 });
 
-// SEARCH FILTER
+// SEARCH
 document.getElementById("searchInput").addEventListener("input", function(e){
 
 var value = e.target.value.toLowerCase();
 
 markersLayer.clearLayers();
 
-allMarkers.forEach(marker => {
+allMarkers.forEach(marker=>{
 if(marker.location.includes(value)){
 marker.addTo(markersLayer);
 }

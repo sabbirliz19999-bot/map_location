@@ -18,17 +18,22 @@ height:100vh;
 }
 
 /* 🔍 SEARCH BOX CENTER TOP */
-.search-box {
+.search-wrapper {
 position: absolute;
 top: 15px;
 left: 50%;
 transform: translateX(-50%);
 z-index: 9999;
+width: 250px;
+}
+
+.search-box {
 background: white;
 padding: 8px 12px;
 border-radius: 8px;
 box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-width: 250px;
+display: flex;
+align-items: center;
 }
 
 .search-box input {
@@ -36,6 +41,35 @@ width: 100%;
 border: none;
 outline: none;
 font-size: 14px;
+}
+
+/* ✨ SUGGESTIONS DROPDOWN */
+.suggestions-list {
+background: white;
+margin-top: 5px;
+border-radius: 8px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+max-height: 200px;
+overflow-y: auto;
+display: none;
+padding: 0;
+list-style: none;
+}
+
+.suggestions-list li {
+padding: 10px 12px;
+font-size: 13px;
+color: #333;
+cursor: pointer;
+border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestions-list li:last-child {
+border-bottom: none;
+}
+
+.suggestions-list li:hover {
+background: #f5f5f5;
 }
 
 /* ========================= */
@@ -125,9 +159,11 @@ font-size: 14px;
 
 <body>
 
-<!-- 🔍 SEARCH BOX -->
-<div class="search-box">
-<input type="text" id="searchInput" placeholder="Search by location...">
+<div class="search-wrapper">
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search by location, name...">
+    </div>
+    <ul class="suggestions-list" id="suggestionsList"></ul>
 </div>
 
 <div id="map"></div>
@@ -172,12 +208,14 @@ if(!isNaN(lat) && !isNaN(lng)){
 
 var marker = L.marker([lat,lng]);
 
-marker.location = location.toLowerCase();
+// Store data strings on the marker instance for easy indexing/searching
+marker.markerName = name;
+marker.location = location;
+marker.manager = manager;
 
 marker.bindPopup(`
 <div class="popup-card">
 
-    <!-- LEFT -->
     <div class="left-section">
         <div class="title">Location Details</div>
 
@@ -187,7 +225,6 @@ marker.bindPopup(`
         <div class="info"><span class="label">Location:</span> ${location}</div>
     </div>
 
-    <!-- RIGHT -->
     <div class="right-section">
         <div class="avatar"></div>
 
@@ -210,21 +247,69 @@ allMarkers.push(marker);
 
 });
 
-// SEARCH FUNCTION (LOCATION)
-document.getElementById("searchInput").addEventListener("input", function(e){
+// 🚀 SUGGESTIONS AND ZOOM LOGIC
+const searchInput = document.getElementById("searchInput");
+const suggestionsList = document.getElementById("suggestionsList");
 
-var value = e.target.value.toLowerCase();
+searchInput.addEventListener("input", function(e){
+    var value = e.target.value.toLowerCase().trim();
+    suggestionsList.innerHTML = ""; // Clear old suggestions
 
-markersLayer.clearLayers();
+    if(value === "") {
+        suggestionsList.style.display = "none";
+        // Reset map layers to show everything if search is empty
+        markersLayer.clearLayers();
+        allMarkers.forEach(m => m.addTo(markersLayer));
+        return;
+    }
 
-allMarkers.forEach(marker => {
+    var matches = [];
 
-if(marker.location.includes(value)){
-marker.addTo(markersLayer);
-}
+    allMarkers.forEach(marker => {
+        var nameMatch = marker.markerName.toLowerCase().includes(value);
+        var locMatch = marker.location.toLowerCase().includes(value);
+        var managerMatch = marker.manager.toLowerCase().includes(value);
 
+        if(nameMatch || locMatch || managerMatch) {
+            matches.push(marker);
+        }
+    });
+
+    // Display suggestions if matching data is found
+    if(matches.length > 0) {
+        suggestionsList.style.display = "block";
+        
+        // Limit suggestion UI to maximum 5 items for clean layout
+        matches.slice(0, 5).forEach(marker => {
+            var li = document.createElement("li");
+            // Highlight layout display format: "Location Name (City/Area)"
+            li.textContent = `${marker.markerName} (${marker.location})`;
+            
+            li.addEventListener("click", function() {
+                searchInput.value = marker.markerName;
+                suggestionsList.style.display = "none";
+                
+                // Isolate the single chosen marker on the map layer
+                markersLayer.clearLayers();
+                marker.addTo(markersLayer);
+                
+                // Smooth pan and zoom closer into the selected point
+                map.setView(marker.getLatLng(), 14, { animate: true });
+                marker.openPopup();
+            });
+            
+            suggestionsList.appendChild(li);
+        });
+    } else {
+        suggestionsList.style.display = "none";
+    }
 });
 
+// Close suggestion drawer automatically if user clicks away from search interface
+document.addEventListener("click", function(e) {
+    if (!searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+        suggestionsList.style.display = "none";
+    }
 });
 
 });
